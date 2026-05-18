@@ -85,7 +85,7 @@ jobs:
           ./pmd-bin-7.0.0/bin/pmd cpd \
             --minimum-tokens 50 \
             --language python \
-            --files src \
+            --dir src \
             --format text \
             2>&1 | tee duplicates-report.txt || true
 
