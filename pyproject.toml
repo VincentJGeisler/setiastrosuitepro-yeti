@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "setiastrosuitepro-yeti"
-version = "1.16.4.yeti1"
+version = "1.16.4+yeti1"
 description = "Seti Astro Suite Pro - YETI Edition: No sippy cups, just proper packaging"
 authors = ["Franklin Marek <frank@setiastro.com>", "YETI Edition Maintainers"]
 readme = "README.YETI.md"
