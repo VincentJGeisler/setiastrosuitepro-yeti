@@ -28,6 +28,6 @@ class AccelInstallWorker(QObject):
             return
 
         if ok:
-            self.finished.emit(True, "PyTorch installed and ready.")
+            self.finished.emit(True, "PyTorch detected and ready.")
         else:
             self.finished.emit(False, msg or "Installation failed.")

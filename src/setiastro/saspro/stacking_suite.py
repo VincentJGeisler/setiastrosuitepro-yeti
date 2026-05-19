@@ -102,7 +102,6 @@ from setiastro.saspro.mfdeconvcudnn import MultiFrameDeconvWorkercuDNN
 from setiastro.saspro.mfdeconvsport import MultiFrameDeconvWorkerSport
 from setiastro.saspro.accel_installer import current_backend
 from setiastro.saspro.accel_workers import AccelInstallWorker
-from setiastro.saspro.runtime_torch import add_runtime_to_sys_path
 from setiastro.saspro.free_torch_memory import _free_torch_memory
 from setiastro.saspro.torch_rejection import (
     torch_available as _torch_ok,
@@ -5359,7 +5358,6 @@ class StackingSuiteDialog(QDialog):
         self.dark_tab = self.create_dark_tab()
         self.flat_tab = self.create_flat_tab()
         self.light_tab = self.create_light_tab()
-        add_runtime_to_sys_path(status_cb=lambda *_: None)
         self.image_integration_tab = self.create_image_registration_tab()
         self.quick_stack_tab = self.create_quick_stack_tab()
 
@@ -5377,8 +5375,7 @@ class StackingSuiteDialog(QDialog):
         )
         self.flat_auto_session_cb.toggled.connect(
             lambda v: _sync_auto_session_checkboxes(self.flat_auto_session_cb, self.light_auto_session_cb, v)
-        )        
-        add_runtime_to_sys_path(status_cb=lambda *_: None)
+        )
 
 
 
@@ -8643,7 +8640,6 @@ class StackingSuiteDialog(QDialog):
         self.dark_tab = self.create_dark_tab()
         self.flat_tab = self.create_flat_tab()
         self.light_tab = self.create_light_tab()
-        add_runtime_to_sys_path(status_cb=lambda *_: None)
         self.image_integration_tab = self.create_image_registration_tab()
         self.quick_stack_tab = self.create_quick_stack_tab()
 

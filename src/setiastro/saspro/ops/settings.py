@@ -297,7 +297,7 @@ class SettingsDialog(QDialog):
             self.cb_accel_pref.addItem(label)
         self.cb_accel_pref.currentIndexChanged.connect(self._accel_pref_changed)
 
-        self.install_accel_btn = QPushButton(self.tr("Install/Repair Hardware Acceleration…"))
+        self.install_accel_btn = QPushButton(self.tr("Check Hardware Acceleration Status…"))
 
         gpu_help_btn = QToolButton()
         gpu_help_btn.setText("?")
@@ -776,12 +776,6 @@ class SettingsDialog(QDialog):
 
 
     def _format_accel_deps_text(self) -> str:
-        try:
-            from setiastro.saspro.runtime_torch import add_runtime_to_sys_path
-            add_runtime_to_sys_path(status_cb=lambda *_: None)
-        except Exception:
-            pass
-
         torch_ok, torch_txt = self._pkg_status("torch", "torch")
         dml_ok, dml_txt     = self._pkg_status("torch-directml", "torch_directml")
         tv_ok, tv_txt       = self._pkg_status("torchvision", "torchvision")
@@ -1027,18 +1021,13 @@ class SettingsDialog(QDialog):
 
         warn = QMessageBox(self)
         warn.setIcon(QMessageBox.Icon.Warning)
-        warn.setWindowTitle(self.tr("Install GPU Acceleration"))
-        warn.setText(self.tr("This process may appear stalled for several minutes."))
+        warn.setWindowTitle(self.tr("Check GPU Acceleration"))
+        warn.setText(self.tr("Checking PyTorch availability…"))
         warn.setInformativeText(self.tr(
-            "SAS Pro is downloading and installing very large PyTorch runtime packages "
-            "(often around 2.5 GB total).\n\n"
-            "Do NOT close SAS Pro.\n"
-            "Do NOT cancel the install.\n"
-            "Do NOT force-stop the process, even if it looks hung.\n\n"
-            "Interrupting installation can corrupt the runtime environment and require "
-            "a full reinstall of Hardware Acceleration."
+            "SAS Pro will check if PyTorch and GPU acceleration are available in your current Python environment.\n\n"
+            "If PyTorch is not installed, you will see instructions for manual installation."
         ))
-        btn_install = warn.addButton(self.tr("I Understand — Install/Repair"), QMessageBox.ButtonRole.AcceptRole)
+        btn_install = warn.addButton(self.tr("Check Availability"), QMessageBox.ButtonRole.AcceptRole)
         warn.addButton(QMessageBox.StandardButton.Cancel)
         warn.setDefaultButton(btn_install)
         warn.exec()
@@ -1052,7 +1041,7 @@ class SettingsDialog(QDialog):
         from setiastro.saspro.accel_workers import AccelInstallWorker
 
         self.install_accel_btn.setEnabled(False)
-        self.backend_label.setText(self.tr("Backend: installing…"))
+        self.backend_label.setText(self.tr("Backend: checking…"))
 
         # Read preference using the dynamic accel list
         pref_key = "auto"
@@ -1064,7 +1053,7 @@ class SettingsDialog(QDialog):
             pref_key = (self.settings.value("accel/preferred_backend", "auto", type=str) or "auto").lower()
 
         self._accel_pd = QProgressDialog(self)
-        self._accel_pd.setWindowTitle(self.tr("Installing Hardware Acceleration — Do Not Interrupt"))
+        self._accel_pd.setWindowTitle(self.tr("Checking Hardware Acceleration"))
         self._accel_pd.setWindowModality(Qt.WindowModality.ApplicationModal)
         self._accel_pd.setRange(0, 0)  # busy / indeterminate
         self._accel_pd.setCancelButton(None)  # <- no cancel button
@@ -1079,13 +1068,10 @@ class SettingsDialog(QDialog):
         self._accel_pd.setWindowFlags(flags)
 
         self._accel_warning_text = self.tr(
-            "⚠️ IMPORTANT:\n"
-            "Do NOT close SAS Pro or interrupt this process.\n"
-            "Hardware Acceleration installs very large PyTorch runtime packages and may appear hung.\n"
-            "This is normal.\n\n"
+            "Checking PyTorch environment…\n\n"
         )
 
-        self._accel_pd.setLabelText(self._accel_warning_text + self.tr("Preparing runtime…"))
+        self._accel_pd.setLabelText(self._accel_warning_text + self.tr("Checking environment…"))
         self._accel_pd.show()
 
         self._accel_thread = QThread(self)
