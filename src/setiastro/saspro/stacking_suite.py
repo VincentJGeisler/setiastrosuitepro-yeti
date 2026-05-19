@@ -5359,7 +5359,6 @@ class StackingSuiteDialog(QDialog):
         self.dark_tab = self.create_dark_tab()
         self.flat_tab = self.create_flat_tab()
         self.light_tab = self.create_light_tab()
-        add_runtime_to_sys_path(status_cb=lambda *_: None)
         self.image_integration_tab = self.create_image_registration_tab()
         self.quick_stack_tab = self.create_quick_stack_tab()
 
@@ -5377,8 +5376,7 @@ class StackingSuiteDialog(QDialog):
         )
         self.flat_auto_session_cb.toggled.connect(
             lambda v: _sync_auto_session_checkboxes(self.flat_auto_session_cb, self.light_auto_session_cb, v)
-        )        
-        add_runtime_to_sys_path(status_cb=lambda *_: None)
+        )
 
 
 
@@ -8643,7 +8641,6 @@ class StackingSuiteDialog(QDialog):
         self.dark_tab = self.create_dark_tab()
         self.flat_tab = self.create_flat_tab()
         self.light_tab = self.create_light_tab()
-        add_runtime_to_sys_path(status_cb=lambda *_: None)
         self.image_integration_tab = self.create_image_registration_tab()
         self.quick_stack_tab = self.create_quick_stack_tab()
 
