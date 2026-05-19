@@ -33,10 +33,18 @@ conda activate saspro
 # 2. Install PyTorch with CUDA support
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 
-# 3. Install SetiAstroSuitePro YETI Edition
+# 3. Install ONNX Runtime GPU (datacenter GPUs: A100/A6000/H100)
+# IMPORTANT: Stable onnxruntime-gpu does NOT support compute capability 8.0+
+# Use nightly build for datacenter GPUs:
+pip install ort-nightly-gpu --index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/
+
+# For consumer GPUs (RTX 30xx/40xx), stable version works:
+# pip install onnxruntime-gpu
+
+# 4. Install SetiAstroSuitePro YETI Edition
 pip install git+https://github.com/VincentJGeisler/setiastrosuitepro-yeti.git
 
-# 4. Run it
+# 5. Run it
 setiastrosuitepro
 ```
 
@@ -50,10 +58,18 @@ source ~/saspro-env/bin/activate  # Windows: ~/saspro-env/Scripts/activate.bat
 # 2. Install PyTorch with CUDA support
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 
-# 3. Install SetiAstroSuitePro YETI Edition
+# 3. Install ONNX Runtime GPU (datacenter GPUs: A100/A6000/H100)
+# IMPORTANT: Stable onnxruntime-gpu does NOT support compute capability 8.0+
+# Use nightly build for datacenter GPUs:
+pip install ort-nightly-gpu --index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/
+
+# For consumer GPUs (RTX 30xx/40xx), stable version works:
+# pip install onnxruntime-gpu
+
+# 4. Install SetiAstroSuitePro YETI Edition
 pip install git+https://github.com/VincentJGeisler/setiastrosuitepro-yeti.git
 
-# 4. Run it
+# 5. Run it
 setiastrosuitepro
 ```
 

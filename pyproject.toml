@@ -62,14 +62,20 @@ numba = "*"
 # - CPU:  pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 # We don't include it as a dependency to let users choose their backend
 onnx = "*"
-# Use GPU version on Linux, DirectML on Windows, CPU version on macOS/others
-# Note: onnxruntime-gpu includes CUDA support and also provides CPUExecutionProvider as fallback
-# You cannot install both onnxruntime and onnxruntime-gpu simultaneously
-"onnxruntime-gpu" = [
-    {version = ">=1.19.0,<1.25.0", markers = "sys_platform == 'linux' and python_version == '3.10'"},
-    {version = ">=1.25.0", markers = "sys_platform == 'linux' and python_version >= '3.11'"}
-]
-"onnxruntime-directml" = {version = ">=1.20.0", markers = "sys_platform == 'win32'"}
+# YETI Edition: CRITICAL - ONNX Runtime on Windows+NVIDIA CUDA
+#
+# The stable onnxruntime-gpu 1.26.0 from PyPI does NOT support NVIDIA A100/A6000 GPUs
+# (compute capability 8.0+). It only includes kernels for older architectures.
+#
+# For datacenter GPUs (A100, A6000, H100), you MUST use the nightly build:
+#   pip install ort-nightly-gpu --index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/
+#
+# For consumer GPUs (RTX 30xx, 40xx with compute capability ≤7.5), stable works:
+#   pip install onnxruntime-gpu
+#
+# We can't specify nightly in pyproject.toml, so this must be installed manually.
+# Leaving the stable version as default, but README.YETI.md documents the nightly requirement.
+"onnxruntime-gpu" = {version = ">=1.19.0", markers = "sys_platform == 'linux' or sys_platform == 'win32'"}
 onnxruntime = {version = ">=1.19.0", markers = "sys_platform != 'linux' and sys_platform != 'win32'"}
 
 # image formats & camera raw

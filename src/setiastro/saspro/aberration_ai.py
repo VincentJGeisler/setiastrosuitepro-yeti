@@ -558,7 +558,8 @@ def run_aberration_ai_on_array(
     except RuntimeError as e:
         if str(e).startswith("CUDA_FALLBACK:"):
             if log_cb:
-                log_cb(f"CUDA kernel mismatch detected — falling back to CPU...")
+                log_cb(f"CUDA error details: {str(e)[14:]}")
+                log_cb(f"Falling back to CPU...")
             sess = ort.InferenceSession(model_path, providers=["CPUExecutionProvider"])
             used_provider = "CPUExecutionProvider"
             out = run_onnx_tiled(
