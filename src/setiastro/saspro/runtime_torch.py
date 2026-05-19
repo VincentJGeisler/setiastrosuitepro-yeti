@@ -119,7 +119,10 @@ def best_device(torch, *, prefer_cuda=True, prefer_dml=False, prefer_xpu=False):
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _user_runtime_dir(status_cb=print) -> Path:
-    """Return user runtime directory (LOCALAPPDATA/SASpro/runtime)."""
+    """Return user runtime directory (LOCALAPPDATA/SASpro/runtime/pyXXX).
+
+    CRITICAL: Must include pyXXX tag for model discovery compatibility.
+    """
     env_override = os.getenv("SASPRO_RUNTIME_DIR")
     if env_override:
         return Path(env_override).expanduser().resolve()
@@ -132,7 +135,9 @@ def _user_runtime_dir(status_cb=print) -> Path:
     else:
         base = Path(os.getenv("XDG_DATA_HOME", Path.home() / ".local" / "share"))
 
-    return base / "SASpro" / "runtime"
+    # Include Python version tag (e.g., py313) for model directory compatibility
+    tag = f"py{sys.version_info.major}{sys.version_info.minor}"
+    return base / "SASpro" / "runtime" / tag
 
 
 # ──────────────────────────────────────────────────────────────────────────────
