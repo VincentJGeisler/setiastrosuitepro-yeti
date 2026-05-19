@@ -1,8 +1,4 @@
 #pro.gui.main_window.py
-from setiastro.saspro.runtime_torch import add_runtime_to_sys_path, _ban_shadow_torch_paths, _purge_bad_torch_from_sysmodules
-add_runtime_to_sys_path(status_cb=lambda *_: None)
-_ban_shadow_torch_paths(status_cb=lambda *_: None)
-_purge_bad_torch_from_sysmodules(status_cb=lambda *_: None)
 
 # ============================================================================
 # Standard Library Imports
