@@ -211,6 +211,10 @@ def current_backend() -> str:
         import torch
         import importlib
 
+        # Check for stub (injected when torch isn't installed yet)
+        if getattr(torch, "__version__", "") == "0.0.0+unavailable":
+            return "Not installed"
+
         # Check for ROCm (AMD) - must check before CUDA
         try:
             hip_ver = getattr(getattr(torch, "version", None), "hip", None)
@@ -264,8 +268,11 @@ def current_backend() -> str:
         # Default to CPU
         return "CPU"
 
+    except ModuleNotFoundError:
+        # torch not installed yet (first run) — silent, expected
+        return "Not installed"
     except Exception as e:
-        import traceback
-        print(f"[current_backend] Error: {type(e).__name__}: {e}")
-        print(traceback.format_exc())
+        # Unexpected failure — log concisely, no traceback spam
+        import logging
+        logging.debug("[current_backend] failed: %s: %s", type(e).__name__, e)
         return "Not installed"

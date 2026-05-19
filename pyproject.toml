@@ -99,6 +99,7 @@ psutil = "*"
 
 # computer vision
 opencv-python-headless = "*"
+scikit-image = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
