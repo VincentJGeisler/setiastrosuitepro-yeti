@@ -8,7 +8,6 @@ import numpy as np
 
 # Keep these imports because your runtime torch loader is still the right way
 # to get CUDA / DirectML / MPS / CPU fallback behavior.
-from setiastro.saspro.runtime_torch import _user_runtime_dir, _venv_paths, _check_cuda_in_venv
 from setiastro.saspro.resources import get_resources
 
 ProgressCB = Callable[[int, int, str], None]  # (done, total, stage)

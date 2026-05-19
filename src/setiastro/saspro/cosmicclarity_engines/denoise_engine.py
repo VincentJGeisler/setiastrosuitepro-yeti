@@ -12,7 +12,6 @@ import cv2
 
 
 from setiastro.saspro.resources import get_resources
-from setiastro.saspro.runtime_torch import _user_runtime_dir, _venv_paths, _check_cuda_in_venv
 
 warnings.filterwarnings("ignore")
 

@@ -105,6 +105,11 @@ def ensure_torch_installed(
         This is YETI Edition - status check only, NO auto-installation.
         Users must install PyTorch manually via pip/conda.
     """
+    log_cb(
+        "[YETI] Note: This checks PyTorch availability only. "
+        "No packages will be downloaded or installed. "
+        "To install PyTorch, use pip/conda manually."
+    )
     try:
         # Try to import torch
         try:

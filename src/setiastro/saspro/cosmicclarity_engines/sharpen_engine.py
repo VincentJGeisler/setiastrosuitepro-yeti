@@ -403,7 +403,10 @@ def load_sharpen_models(use_gpu: bool, status_cb=print) -> SharpenModels:
              status_cb=status_cb)
         raise
     ort = _get_ort(status_cb=status_cb)
-    # ---- runtime venv CUDA probe (subprocess) ----
+    # ---- YETI: in-process CUDA probe (venv_python param ignored) ----
+    # NOTE: In YETI Edition, _check_cuda_in_venv checks the current process,
+    # not a subprocess. This diagnostic block is informational only;
+    # actual CUDA selection happens below via torch.cuda.is_available().
     try:
         rt = _user_runtime_dir()
         vpy = _venv_paths(rt)["python"]

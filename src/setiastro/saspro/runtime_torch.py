@@ -14,6 +14,7 @@ import os
 import sys
 import platform
 import subprocess
+import warnings
 from pathlib import Path
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -171,6 +172,13 @@ def _venv_pyver(venv_python: Path) -> tuple[int, int] | None:
 
 def _check_cuda_in_venv(venv_python: Path, status_cb=print) -> tuple[bool, str | None, str | None]:
     """Check if CUDA is available in venv Python."""
+    warnings.warn(
+        "_check_cuda_in_venv: 'venv_python' parameter is ignored in YETI Edition. "
+        "CUDA availability is checked in the current process, not a subprocess. "
+        "This function may be removed in a future release.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     try:
         import torch
         cuda_tag = getattr(getattr(torch, "version", None), "cuda", None)
