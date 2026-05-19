@@ -102,7 +102,6 @@ from setiastro.saspro.mfdeconvcudnn import MultiFrameDeconvWorkercuDNN
 from setiastro.saspro.mfdeconvsport import MultiFrameDeconvWorkerSport
 from setiastro.saspro.accel_installer import current_backend
 from setiastro.saspro.accel_workers import AccelInstallWorker
-from setiastro.saspro.runtime_torch import add_runtime_to_sys_path
 from setiastro.saspro.free_torch_memory import _free_torch_memory
 from setiastro.saspro.torch_rejection import (
     torch_available as _torch_ok,
