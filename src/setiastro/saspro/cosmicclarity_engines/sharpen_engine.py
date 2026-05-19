@@ -403,21 +403,6 @@ def load_sharpen_models(use_gpu: bool, status_cb=print) -> SharpenModels:
              status_cb=status_cb)
         raise
     ort = _get_ort(status_cb=status_cb)
-    # ---- YETI: in-process CUDA probe (venv_python param ignored) ----
-    # NOTE: In YETI Edition, _check_cuda_in_venv checks the current process,
-    # not a subprocess. This diagnostic block is informational only;
-    # actual CUDA selection happens below via torch.cuda.is_available().
-    try:
-        rt = _user_runtime_dir()
-        vpy = _venv_paths(rt)["python"]
-        _dbg(f"Runtime dir={rt} venv_python={vpy}", status_cb=status_cb)
-        t1 = time.time()
-        ok, cuda_tag, err = _check_cuda_in_venv(vpy, status_cb=status_cb)
-        _dbg(f"CUDA probe finished in {time.time()-t1:.3f}s: ok={ok}, torch.version.cuda={cuda_tag}, err={err!r}",
-             status_cb=status_cb)
-    except Exception as e:
-        _dbg("Runtime CUDA probe FAILED:\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)),
-             status_cb=status_cb)
 
     # ---- CUDA branch ----
     if use_gpu:
