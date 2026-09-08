@@ -561,8 +561,6 @@ def get_system_info() -> dict:
     }
     # torch / onnx details (optional)
     try:
-        from setiastro.saspro.runtime_torch import add_runtime_to_sys_path
-        add_runtime_to_sys_path(status_cb=lambda *_: None)
         import torch
         info["torch.__version__"] = getattr(torch, "__version__", "Unknown")
         info["torch.version.cuda"] = getattr(getattr(torch, "version", None), "cuda", None)

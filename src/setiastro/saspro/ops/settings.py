@@ -977,12 +977,6 @@ class SettingsDialog(QDialog):
 
 
     def _format_accel_deps_text(self) -> str:
-        try:
-            from setiastro.saspro.runtime_torch import add_runtime_to_sys_path
-            add_runtime_to_sys_path(status_cb=lambda *_: None)
-        except Exception:
-            pass
-
         torch_ok, torch_txt = self._pkg_status("torch", "torch")
         dml_ok, dml_txt     = self._pkg_status("torch-directml", "torch_directml")
         tv_ok, tv_txt       = self._pkg_status("torchvision", "torchvision")
