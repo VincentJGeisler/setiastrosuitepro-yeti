@@ -69,6 +69,8 @@ def import_torch(
 
     try:
         import torch
+        if getattr(torch, "__version__", "") == "0.0.0+unavailable":
+            raise ImportError("PyTorch unavailable stub is active")
         _TORCH_CACHED = torch
         _rt_dbg(f"Using PyTorch {torch.__version__}", status_cb)
         return torch
