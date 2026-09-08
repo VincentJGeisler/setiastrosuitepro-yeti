@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "setiastrosuitepro"
-version = "1.21.4"
-description = "Seti Astro Suite Pro - Advanced astrophotography toolkit for image calibration, stacking, registration, photometry, and visualization"
+name = "setiastrosuitepro-yeti"
+version = "1.21.4+yeti1"
+description = "Seti Astro Suite Pro - YETI Edition: No sippy cups, just proper packaging"
 authors = ["Franklin Marek <frank@setiastro.com>"]
-readme = "README.md"
+readme = "README.YETI.md"
 license = "GPL-3.0"
-homepage = "https://www.setiastro.com"
-repository = "https://github.com/setiastro/setiastrosuitepro"
+homepage = "https://github.com/VincentJGeisler/setiastrosuitepro-yeti"
+repository = "https://github.com/VincentJGeisler/setiastrosuitepro-yeti"
 keywords = ["astrophotography", "astronomy", "image-processing", "photometry"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -61,11 +61,14 @@ GaiaXPy = "^2.1.4"
 # performance
 numba = "*"
 
-#neural net
+# neural net / GPU acceleration
+# NOTE: PyTorch must be installed separately with the user's chosen backend:
+# - CUDA: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+# - CPU:  pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 onnx = "*"
-# Use GPU version on Linux, DirectML on Windows, CPU version on macOS/others
-# Note: onnxruntime-gpu includes CUDA support and also provides CPUExecutionProvider as fallback
-# You cannot install both onnxruntime and onnxruntime-gpu simultaneously
+# ONNX Runtime remains a user-selected external dependency.  The GPU package is
+# declared for the normal Linux/Windows install path, while datacenter users may
+# replace it with the ORT nightly build documented in README.YETI.md.
 "onnxruntime-gpu" = [
     {version = ">=1.19.0,<1.25.0", markers = "sys_platform == 'linux' and python_version == '3.10'"},
     {version = ">=1.25.0", markers = "sys_platform == 'linux' and python_version >= '3.11'"}
@@ -113,4 +116,3 @@ cosmicclarity = "setiastro.saspro.cli:main"
 saspro-export-requirements = "ops.export_requirements:main"
 saspro-write-build-info = "ops.write_build_info:main"
 saspro-prime-matplotlib-cache = "ops.prime_matplotlib_cache:main"
-
