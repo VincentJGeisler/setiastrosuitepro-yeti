@@ -498,12 +498,10 @@ class FirstRunDialog(QDialog):
                     "prefs_btn": True,
                 },
                 {
-                    "text": "Install Hardware Acceleration",
-                    "note": "This is not optional — hardware acceleration powers a large portion of SASpro, "
-                        "including Cosmic Clarity, Star Removal, Denoising, Stacking, Drizzle Integration, "
-                        "Multi-Scale Decomposition, and many other core tools. Without it, much of the "
-                        "application will not function correctly. Find this under "
-                        "Preferences → Acceleration → Install/Repair.",
+                    "text": "Check Hardware Acceleration",
+                    "note": "SASpro checks the PyTorch and accelerator packages in your active Python environment. "
+                        "Install a compatible Torch/CUDA/ONNX stack yourself with conda or pip, then use "
+                        "Preferences → Acceleration → Check Status.",
                 },
                 {
                     "text": "Download the latest AI Models",

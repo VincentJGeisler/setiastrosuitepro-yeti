@@ -942,7 +942,7 @@ class SettingsDialog(QDialog):
             self, self.tr("Hardware Acceleration Help"),
             self.tr(
                 "If hardware acceleration is not being used:\n"
-                " • Click Install/Repair Hardware Acceleration…\n"
+                " • Click Check Hardware Acceleration Status…\n"
                 " • Restart SAS Pro\n"
                 " • On NVIDIA systems, verify drivers and that 'nvidia-smi' works.\n"
                 " • On macOS Apple Silicon, use Auto or Apple Silicon GPU (MPS path).\n"
@@ -1220,11 +1220,6 @@ class SettingsDialog(QDialog):
 
 
     def _install_or_update_accel(self):
-        # Single hard-stop gate
-        if not self._gate_python_for_accel_install():
-            self.backend_label.setText(self.tr("Backend: CPU (Python 3.12/3.13/3.14 required)"))
-            return
-
         from PyQt6.QtWidgets import QMessageBox
 
         warn = QMessageBox(self)

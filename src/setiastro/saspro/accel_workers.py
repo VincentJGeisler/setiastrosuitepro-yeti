@@ -20,7 +20,7 @@ class AccelInstallWorker(QObject):
                 log_cb=self.progress.emit
             )
         except Exception as e:
-            self.finished.emit(False, str(e) or "Installation failed.")
+            self.finished.emit(False, str(e) or "PyTorch status check failed.")
             return
 
         if QThread.currentThread().isInterruptionRequested():
@@ -30,4 +30,4 @@ class AccelInstallWorker(QObject):
         if ok:
             self.finished.emit(True, "PyTorch detected and ready.")
         else:
-            self.finished.emit(False, msg or "Installation failed.")
+            self.finished.emit(False, msg or "PyTorch is unavailable in the active environment.")

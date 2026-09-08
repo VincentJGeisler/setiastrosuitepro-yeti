@@ -12105,8 +12105,8 @@ class StackingSuiteDialog(QDialog):
         self.backend_label = QLabel(self.tr("Backend: {0}").format(current_backend()))
         accel_row.addWidget(self.backend_label)
 
-        self.install_accel_btn = QPushButton(self.tr("Install/Update GPU Acceleration…"))
-        self.install_accel_btn.setToolTip(self.tr("Downloads PyTorch with the right backend (CUDA/MPS/CPU). One-time per machine."))
+        self.install_accel_btn = QPushButton(self.tr("Check GPU Acceleration…"))
+        self.install_accel_btn.setToolTip(self.tr("Checks the active environment's PyTorch and accelerator backend. Install dependencies with your own pip/conda environment."))
         accel_row.addWidget(self.install_accel_btn)
 
         gpu_help_btn = QToolButton()
@@ -12118,43 +12118,12 @@ class StackingSuiteDialog(QDialog):
         accel_row.addStretch(1)
         layout.addLayout(accel_row)
 
-        # same installer wiring as before
+        # Status-only wiring: dependencies remain managed by the user.
         def _install_accel():
-            from setiastro.saspro.runtime_torch import is_supported_runtime_python, supported_python_versions_text
-
-            v = sys.version_info
-            if not is_supported_runtime_python((v.major, v.minor)):
-                supported_text = supported_python_versions_text()
-                why = self.tr(
-                    "This app is running on Python {0}.{1}. GPU acceleration requires Python {2}."
-                ).format(v.major, v.minor, supported_text)
-                tip = ""
-                sysname = platform.system()
-                if sysname == "Darwin":
-                    tip = self.tr("\n\nmacOS tip (Apple Silicon):\n"
-                        " • Install Python 3.12:  brew install python@3.12\n"
-                        " • Then relaunch the app so it can create its runtime with 3.12.")
-                elif sysname == "Windows":
-                    tip = self.tr("\n\nWindows tip:\n"
-                        " • Install Python 3.12/3.13/3.14 (x64) from python.org\n"
-                        " • Then relaunch the app.")
-                else:
-                    tip = self.tr("\n\nLinux tip:\n"
-                        " • Install python3.12, python3.13, or python3.14 via your package manager\n"
-                        " • Then relaunch the app.")
-
-                QMessageBox.warning(self, self.tr("Unsupported Python Version"), why + tip)
-                # reflect the abort in UI/status and leave button enabled
-                try:
-                    self.backend_label.setText(self.tr("Backend: CPU (Python version not supported for GPU install)"))
-                    self.status_signal.emit(self.tr("❌ GPU Acceleration install aborted: unsupported Python version."))
-                except Exception:
-                    pass
-                return
             self.install_accel_btn.setEnabled(False)
-            self.backend_label.setText(self.tr("Backend: installing…"))
-            self._accel_pd = QProgressDialog(self.tr("Preparing runtime…"), self.tr("Cancel"), 0, 0, self)
-            self._accel_pd.setWindowTitle(self.tr("Installing GPU Acceleration"))
+            self.backend_label.setText(self.tr("Backend: checking…"))
+            self._accel_pd = QProgressDialog(self.tr("Checking active environment…"), self.tr("Cancel"), 0, 0, self)
+            self._accel_pd.setWindowTitle(self.tr("Checking GPU Acceleration"))
             self._accel_pd.setWindowModality(Qt.WindowModality.ApplicationModal)
             self._accel_pd.setAutoClose(True)
             self._accel_pd.setMinimumDuration(0)
@@ -12321,17 +12290,13 @@ class StackingSuiteDialog(QDialog):
             "Step 2: install the correct build for your GPU"
         )
 
-        # Exact commands (kept as Windows-friendly with %LOCALAPPDATA%)
+        # Commands target the user's already-activated conda/venv environment.
         cmds = r'''
-    "%LOCALAPPDATA%\SASpro\runtime\py312\venv\Scripts\python.exe" -m pip uninstall -y torch
-
-    -> Then install ONE of the following:
-
-    -> AMD / Intel GPUs:
-    "%LOCALAPPDATA%\SASpro\runtime\py312\venv\Scripts\python.exe" -m pip install torch-directml
-
-    -> NVIDIA GPUs (CUDA 12.9):
-    "%LOCALAPPDATA%\SASpro\runtime\py312\venv\Scripts\python.exe" -m pip install torch --extra-index-url https://download.pytorch.org/whl/cu129
+    # Run these commands after activating your own conda/venv environment.
+    python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+    # For CPU-only systems, use the CPU index instead.
+    # python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+    # For datacenter GPUs, install the documented ORT nightly package as needed.
     '''.strip()
 
         # Show commands in the expandable details area

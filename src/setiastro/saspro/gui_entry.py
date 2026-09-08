@@ -895,13 +895,13 @@ def _bootstrap_imports():
         import sys as _sys
  
         _TORCH_NOT_INSTALLED_MSG = (
-            "PyTorch is not installed in the SASpro runtime venv.\n"
-            "Go to Settings -> Preferences -> Install/Repair Hardware Acceleration."
+            "PyTorch is not installed in the active Python environment.\n"
+            "Install it with your own conda/venv, then use Check Hardware Acceleration Status."
         )
  
         class _TorchUnavailableStub(types.ModuleType):
             """
-            Injected into sys.modules when the runtime venv has no torch.
+            Used only as an optional-GPU fallback when the active environment has no torch.
             Attribute access returns child stubs so module-level imports like
             `import torch.nn as nn` don't crash.  Any real usage (calling,
             subclassing nn.Module, tensor ops) raises RuntimeError with a
@@ -979,24 +979,12 @@ def _bootstrap_imports():
                     _sys.modules[_sm] = _TorchUnavailableStub(_sm)
  
             print(
-                "[SASpro] torch not available in runtime venv -> stub injected. "
-                "GPU tools will be unavailable until Hardware Acceleration is installed "
-                "via Settings -> Preferences."
+                "[SASpro] torch not available in active environment -> optional GPU tools disabled. "
+                "Install dependencies manually, then use Check Hardware Acceleration Status."
             )
  
     _update_splash_gravitas(7)
-    _update_splash_technical("Preparing AI runtime cache...")
-    try:
-        from setiastro.saspro.runtime_torch import prewarm_torch_cache
-        prewarm_torch_cache(
-            status_cb=lambda *_: None,
-            require_torchaudio=False,
-            ensure_venv=True,
-            ensure_numpy=False,
-            validate_marker=True,
-        )
-    except Exception:
-        pass
+    _update_splash_technical("Checking active Torch environment...")
  
     _update_splash_gravitas(10)
     _update_splash_technical("Loading standard libraries...")
