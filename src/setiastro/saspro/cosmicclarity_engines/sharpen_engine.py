@@ -338,14 +338,6 @@ def load_sharpen_models(use_gpu: bool, status_cb=print) -> SharpenModels:
 
     ort = _get_ort(status_cb=status_cb)
 
-    try:
-        rt = _user_runtime_dir()
-        vpy = _venv_paths(rt)["python"]
-        ok, cuda_tag, err = _check_cuda_in_venv(vpy, status_cb=status_cb)
-    except Exception:
-        pass
-
-
     if use_gpu:
         try:
             cuda_ok = bool(getattr(torch, "cuda", None) and torch.cuda.is_available())
