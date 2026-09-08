@@ -1,0 +1,382 @@
+name: Code Hygiene
+
+on:
+  push:
+    branches: [main, yeti-cleanup]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday
+
+jobs:
+  dead-code-detection:
+    name: Dead Code & Unused Symbols
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install vulture (dead code detector)
+        run: pip install vulture
+
+      - name: Find unused code
+        run: |
+          echo "=== Checking for unused functions and imports ==="
+          vulture src/ --min-confidence 80 | tee dead-code-report.txt || true
+
+          if [ -s dead-code-report.txt ]; then
+            echo "⚠️ Found potentially unused code - review for removal"
+          else
+            echo "✓ No obvious dead code detected"
+          fi
+        continue-on-error: true
+
+      - name: Find orphaned Python files
+        run: |
+          echo "=== Checking for orphaned Python files ==="
+          for pyfile in $(find src -name "*.py" -type f); do
+            # Skip __init__.py and __main__.py
+            if [[ "$pyfile" == *"__init__.py" ]] || [[ "$pyfile" == *"__main__.py" ]]; then
+              continue
+            fi
+
+            # Check if file is imported anywhere
+            basename=$(basename "$pyfile" .py)
+            if ! grep -r --include="*.py" -q "import.*$basename\|from.*$basename" .; then
+              echo "⚠️ Potentially orphaned: $pyfile"
+            fi
+          done
+        continue-on-error: true
+
+      - name: Upload dead code report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dead-code-report
+          path: dead-code-report.txt
+
+  duplicate-detection:
+    name: Duplicate & Redundant Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PMD CPD
+        run: |
+          wget https://github.com/pmd/pmd/releases/download/pmd_releases%2F7.0.0/pmd-dist-7.0.0-bin.zip
+          unzip -q pmd-dist-7.0.0-bin.zip
+
+      - name: Detect duplicate code blocks
+        run: |
+          echo "=== Checking for duplicate code (>50 tokens) ==="
+          ./pmd-bin-7.0.0/bin/pmd cpd \
+            --minimum-tokens 50 \
+            --language python \
+            --files src \
+            --format text \
+            2>&1 | tee duplicates-report.txt || true
+
+          if [ -s duplicates-report.txt ]; then
+            echo "⚠️ Found duplicate code blocks - consider consolidation"
+          else
+            echo "✓ No significant duplicates detected"
+          fi
+        continue-on-error: true
+
+      - name: Find similar function names
+        run: |
+          echo "=== Checking for suspiciously similar function names ==="
+          grep -rh --include="*.py" -E "^\s*def\s+[a-zA-Z_][a-zA-Z0-9_]*" src/ | \
+            sed 's/def //' | sed 's/(.*//' | \
+            sort | \
+            uniq -c | \
+            sort -rn | \
+            head -20 > similar-functions.txt
+
+          echo "Top function name patterns (review for redundancy):"
+          cat similar-functions.txt
+        continue-on-error: true
+
+      - name: Upload duplicate code report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: duplicate-code-report
+          path: |
+            duplicates-report.txt
+            similar-functions.txt
+
+  static-analysis:
+    name: Static Analysis & Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install analysis tools
+        run: |
+          pip install pylint flake8 mypy bandit
+
+      - name: Run flake8
+        run: |
+          echo "=== Running flake8 (style checker) ==="
+          flake8 src/ --max-line-length=120 --statistics --count \
+            --extend-ignore=E203,W503 \
+            2>&1 | tee flake8-report.txt || true
+        continue-on-error: true
+
+      - name: Run pylint
+        run: |
+          echo "=== Running pylint (linter) ==="
+          pylint src/ --max-line-length=120 --reports=y \
+            --disable=C0103,C0114,C0115,C0116 \
+            2>&1 | tee pylint-report.txt || true
+        continue-on-error: true
+
+      - name: Run bandit (security)
+        run: |
+          echo "=== Running bandit (security checker) ==="
+          bandit -r src/ -f txt -o bandit-report.txt || true
+          cat bandit-report.txt
+        continue-on-error: true
+
+      - name: Check for empty except blocks
+        run: |
+          echo "=== Checking for empty except blocks ==="
+          grep -rn --include="*.py" -A 2 "except" src/ | \
+            grep -B 1 "^\s*pass\s*$" | \
+            grep "except" || echo "✓ No obvious empty except blocks"
+        continue-on-error: true
+
+      - name: Upload static analysis report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: static-analysis-report
+          path: |
+            flake8-report.txt
+            pylint-report.txt
+            bandit-report.txt
+
+  type-checking:
+    name: Type Checking
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install mypy types-Pillow types-requests
+
+      - name: Run mypy
+        run: |
+          echo "=== Running mypy (type checker) ==="
+          mypy src/ --ignore-missing-imports --check-untyped-defs \
+            2>&1 | tee mypy-report.txt || true
+        continue-on-error: true
+
+      - name: Upload type checking report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: type-checking-report
+          path: mypy-report.txt
+
+  import-analysis:
+    name: Import Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check for unused imports
+        run: |
+          echo "=== Checking for unused imports ==="
+          pip install autoflake
+          autoflake --check --remove-all-unused-imports -r src/ | tee unused-imports.txt || true
+        continue-on-error: true
+
+      - name: Check for circular imports
+        run: |
+          echo "=== Checking for potential circular imports ==="
+          pip install pydeps
+          pydeps src/setiastro --max-bacon=2 -o import-graph.svg || true
+        continue-on-error: true
+
+      - name: Upload import analysis
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: import-analysis-report
+          path: |
+            unused-imports.txt
+            import-graph.svg
+
+  config-drift:
+    name: Configuration Drift Detection
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for TODO/FIXME comments
+        run: |
+          echo "=== Checking for TODO/FIXME markers ==="
+          grep -rn --include="*.py" -E "(TODO|FIXME|HACK|XXX|SIPPY_CUP)" src/ || echo "✓ No TODO markers found"
+        continue-on-error: true
+
+      - name: Check for commented-out code blocks
+        run: |
+          echo "=== Checking for large commented code blocks ==="
+          for file in $(find src -name "*.py"); do
+            awk '/^[[:space:]]*#/ {count++} !/^[[:space:]]*#/ {if(count>5) print FILENAME":"NR-count"-"NR; count=0}' "$file"
+          done | head -20
+        continue-on-error: true
+
+      - name: Check for debug statements
+        run: |
+          echo "=== Checking for debug print statements ==="
+          grep -rn --include="*.py" -E "(print\(.*debug|pdb\.set_trace|breakpoint\(\))" src/ | head -20 || echo "✓ No debug statements found"
+        continue-on-error: true
+
+      - name: Check for backup files
+        run: |
+          echo "=== Checking for backup files ==="
+          find . -name "*.SIPPY_CUP_BACKUP" -o -name "*.bak" -o -name "*~" | head -20 || echo "✓ No backup files found"
+        continue-on-error: true
+
+  formatting-check:
+    name: Code Formatting Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install black
+        run: pip install black
+
+      - name: Check formatting
+        run: |
+          black --check --line-length 120 src/ || echo "⚠️ Code formatting issues found - run 'black src/' locally"
+        continue-on-error: true
+
+  line-endings:
+    name: Line Ending Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for CRLF
+        run: |
+          if git ls-files --eol | grep 'i/crlf'; then
+            echo "Warning: CRLF line endings detected (expected on Windows repo)"
+            exit 0
+          else
+            echo "All files use LF line endings"
+          fi
+
+  dependency-check:
+    name: Dependency Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install pipdeptree safety
+
+      - name: Check dependency tree
+        run: |
+          echo "=== Dependency tree ==="
+          pipdeptree | tee dependency-tree.txt
+        continue-on-error: true
+
+      - name: Check for security vulnerabilities
+        run: |
+          echo "=== Security vulnerability check ==="
+          safety check --json > safety-report.json || true
+          cat safety-report.json
+        continue-on-error: true
+
+      - name: Upload dependency reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-reports
+          path: |
+            dependency-tree.txt
+            safety-report.json
+
+  summary:
+    name: Hygiene Summary
+    runs-on: ubuntu-latest
+    needs: [dead-code-detection, duplicate-detection, static-analysis, type-checking, import-analysis, config-drift, formatting-check, line-endings, dependency-check]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# Code Hygiene Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✓ All hygiene checks completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Review individual job results for:" >> $GITHUB_STEP_SUMMARY
+          echo "- Dead code and unused functions (vulture)" >> $GITHUB_STEP_SUMMARY
+          echo "- Duplicate/redundant code blocks (PMD CPD)" >> $GITHUB_STEP_SUMMARY
+          echo "- Static analysis warnings (pylint, flake8)" >> $GITHUB_STEP_SUMMARY
+          echo "- Security issues (bandit)" >> $GITHUB_STEP_SUMMARY
+          echo "- Type checking (mypy)" >> $GITHUB_STEP_SUMMARY
+          echo "- Import analysis and circular dependencies" >> $GITHUB_STEP_SUMMARY
+          echo "- Configuration drift (TODOs, debug statements)" >> $GITHUB_STEP_SUMMARY
+          echo "- Dependency vulnerabilities (safety)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download artifacts for detailed reports" >> $GITHUB_STEP_SUMMARY
