@@ -15,7 +15,7 @@ The original project tries to bundle everything into self-contained executables 
 3. **Over-complicates everything** - Isolated venvs, auto-installers, complex package management
 4. **Doesn't work on high-end hardware** - Crashes on systems with 5x A100 GPUs before it can even detect them
 
-**YETI Edition philosophy:** 
+**YETI Edition philosophy:**
 - Standard Python packaging (conda/venv)
 - Users manage their own environments
 - Pre-built wheels from official sources
@@ -23,61 +23,48 @@ The original project tries to bundle everything into self-contained executables 
 
 ## Installation (The Right Way)
 
-### Using Conda (Recommended)
+### Create an environment (Conda example)
 
 ```bash
-# 1. Create a dedicated environment
 conda create -n saspro python=3.12
 conda activate saspro
-
-# 2. Install PyTorch with CUDA support
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
-
-# 3. Install ONNX Runtime GPU (datacenter GPUs: A100/A6000/H100)
-# IMPORTANT: Stable onnxruntime-gpu does NOT support compute capability 8.0+
-# Use nightly build for datacenter GPUs:
-pip install ort-nightly-gpu --index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/
-
-# For consumer GPUs (RTX 30xx/40xx), stable version works:
-# pip install onnxruntime-gpu
-
-# 4. Install SetiAstroSuitePro YETI Edition
-pip install git+https://github.com/VincentJGeisler/setiastrosuitepro-yeti.git
-
-# 5. Run it
-setiastrosuitepro
 ```
 
-### Using Python venv
+You can use a standard Python venv instead:
 
 ```bash
-# 1. Create a dedicated environment
 python3.12 -m venv ~/saspro-env
 source ~/saspro-env/bin/activate  # Windows: ~/saspro-env/Scripts/activate.bat
-
-# 2. Install PyTorch with CUDA support
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
-
-# 3. Install ONNX Runtime GPU (datacenter GPUs: A100/A6000/H100)
-# IMPORTANT: Stable onnxruntime-gpu does NOT support compute capability 8.0+
-# Use nightly build for datacenter GPUs:
-pip install ort-nightly-gpu --index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/
-
-# For consumer GPUs (RTX 30xx/40xx), stable version works:
-# pip install onnxruntime-gpu
-
-# 4. Install SetiAstroSuitePro YETI Edition
-pip install git+https://github.com/VincentJGeisler/setiastrosuitepro-yeti.git
-
-# 5. Run it
-setiastrosuitepro
 ```
 
-### CPU-Only Installation
+Install exactly one ONNX Runtime provider in that active environment. YETI does
+not declare or replace any provider package:
 
 ```bash
-# Follow steps above but use CPU PyTorch:
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# Consumer NVIDIA GPU (RTX 30xx/40xx):
+pip install onnxruntime-gpu
+
+# NVIDIA datacenter GPU (A100/A6000/H100): use the nightly provider instead.
+pip uninstall -y onnxruntime onnxruntime-gpu ort-nightly-gpu  # if present
+pip install ort-nightly-gpu --index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/
+
+# CPU-only (all platforms):
+pip install onnxruntime
+
+# Windows AMD/Intel DirectML (instead of the providers above):
+pip install onnxruntime-directml
+```
+
+Do not install more than one of `onnxruntime`, `onnxruntime-gpu`,
+`ort-nightly-gpu`, or `onnxruntime-directml` in the same environment.
+
+Finally install and run YETI:
+
+```bash
+pip install git+https://github.com/VincentJGeisler/setiastrosuitepro-yeti.git
+setiastrosuitepro
 ```
 
 ### For Different CUDA Versions
@@ -91,11 +78,11 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
 **You should ALWAYS use a conda/venv environment for this application:**
 
-✅ **Isolation** - Dependencies don't conflict with other projects  
-✅ **Control** - You choose Python version, PyTorch version, CUDA version  
-✅ **Clean** - Easy to delete and recreate if something breaks  
-✅ **Standard** - This is how Python development works  
-✅ **Reproducible** - Same environment on different machines  
+✅ **Isolation** - Dependencies don't conflict with other projects
+✅ **Control** - You choose Python version, PyTorch version, CUDA version
+✅ **Clean** - Easy to delete and recreate if something breaks
+✅ **Standard** - This is how Python development works
+✅ **Reproducible** - Same environment on different machines
 
 **Don't install into system Python.** Seriously, don't.
 
@@ -121,17 +108,12 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 - ❌ Isolated runtime venv management
 - ❌ "Sippy cup" complexity
 
-## Temporary Workaround (Current Release)
+## Runtime and provider ownership
 
-The current YETI release still contains some of the original isolated venv code. If you encounter the hardware acceleration installer:
-
-1. **Ignore it** - It will try to compile PyTorch from source and fail
-2. **Manually install PyTorch** into the app's venv:
-   ```bash
-   # Find the venv path (usually %LOCALAPPDATA%/SASpro/runtime/py313/venv on Windows)
-   /path/to/venv/Scripts/python.exe -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
-   ```
-3. **Or better:** Wait for the next release with proper refactoring
+The application uses the Python interpreter that launched it. It never creates
+an application-owned runtime and never installs Torch, CUDA, or ONNX packages.
+The acceleration status control only reports what is present in the active
+environment; install or change providers manually using the commands above.
 
 ## Development
 
@@ -143,7 +125,6 @@ conda create -n saspro-dev python=3.12
 conda activate saspro-dev
 
 # Install dependencies
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 pip install -r requirements.txt
 
 # Install in editable mode
@@ -178,5 +159,5 @@ GNU General Public License v3.0 (same as original)
 
 ---
 
-**Original issue that led to this fork:** https://github.com/setiastro/setiastrosuitepro/issues/84  
+**Original issue that led to this fork:** https://github.com/setiastro/setiastrosuitepro/issues/84
 **Discussion:** [YETI Edition Goals](https://github.com/VincentJGeisler/setiastrosuitepro-yeti/discussions) (TBD)

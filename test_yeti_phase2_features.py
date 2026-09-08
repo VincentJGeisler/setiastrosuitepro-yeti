@@ -101,6 +101,22 @@ def test_backend():
     return f"Backend detected: '{backend}'"
 
 
+def test_accel_rejects_unavailable_torch_stub(monkeypatch):
+    """The optional GUI fallback must not count as an installed Torch backend."""
+    import sys
+    import types
+
+    stub = types.ModuleType("torch")
+    stub.__version__ = "0.0.0+unavailable"
+    monkeypatch.setitem(sys.modules, "torch", stub)
+
+    from setiastro.saspro.accel_installer import ensure_torch_installed
+
+    ok, message = ensure_torch_installed(prefer_gpu=True, log_cb=lambda _msg: None)
+    assert ok is False
+    assert "unavailable" in (message or "").lower()
+
+
 # ============================================================================
 # TEST 6: Diagnostics
 # ============================================================================

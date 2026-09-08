@@ -135,3 +135,14 @@ GPU hardware or optional dependencies:
 - Test/audit results, including environmental limitations.
 - A concise list of skipped upstream behavior and why it violates YETI invariants.
 - No push to GitHub until explicitly requested.
+
+## Review Corrections Applied
+
+- `ensure_torch_installed` rejects the GUI's `0.0.0+unavailable` Torch stub.
+- ONNX Runtime providers are external/user-managed. Provider entries were removed
+  from `pyproject.toml` and generated `requirements.txt` so an ORT nightly install
+  cannot be overwritten by a stable provider. The stale `poetry.lock` was removed
+  because Poetry was unavailable to regenerate it after that dependency change;
+  regenerate it with Poetry before publishing a lockfile-based release.
+- README installation instructions now require exactly one provider for consumer
+  NVIDIA, datacenter NVIDIA, CPU, or Windows DirectML environments.

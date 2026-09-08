@@ -127,6 +127,14 @@ def ensure_torch_installed(
             log_cb(error_msg)
             return False, error_msg
 
+        if getattr(torch, "__version__", "") == "0.0.0+unavailable":
+            error_msg = (
+                "PyTorch is unavailable in the active environment. The GUI fallback "
+                "stub is not a usable Torch installation; install Torch manually."
+            )
+            log_cb(error_msg)
+            return False, error_msg
+
         log_cb(f"PyTorch {torch.__version__} found")
 
         # Check what backends are available

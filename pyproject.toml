@@ -2,7 +2,7 @@
 name = "setiastrosuitepro-yeti"
 version = "1.21.4+yeti1"
 description = "Seti Astro Suite Pro - YETI Edition: No sippy cups, just proper packaging"
-authors = ["Franklin Marek <frank@setiastro.com>"]
+authors = ["Franklin Marek <frank@setiastro.com>", "YETI Edition Maintainers"]
 readme = "README.YETI.md"
 license = "GPL-3.0"
 homepage = "https://github.com/VincentJGeisler/setiastrosuitepro-yeti"
@@ -66,15 +66,9 @@ numba = "*"
 # - CUDA: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 # - CPU:  pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 onnx = "*"
-# ONNX Runtime remains a user-selected external dependency.  The GPU package is
-# declared for the normal Linux/Windows install path, while datacenter users may
-# replace it with the ORT nightly build documented in README.YETI.md.
-"onnxruntime-gpu" = [
-    {version = ">=1.19.0,<1.25.0", markers = "sys_platform == 'linux' and python_version == '3.10'"},
-    {version = ">=1.25.0", markers = "sys_platform == 'linux' and python_version >= '3.11'"}
-]
-"onnxruntime-directml" = {version = ">=1.20.0", markers = "sys_platform == 'win32'"}
-onnxruntime = {version = ">=1.19.0", markers = "sys_platform != 'linux' and sys_platform != 'win32'"}
+# ONNX Runtime is deliberately user-managed. Choose exactly one provider in the
+# active conda/venv environment (CPU, GPU, DirectML, or ORT nightly for
+# datacenter GPUs); YETI must never force a provider or replace that choice.
 
 # image formats & camera raw
 xisf = "*"
