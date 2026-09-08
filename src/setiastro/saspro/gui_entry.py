@@ -832,22 +832,8 @@ def _bootstrap_imports():
             _os.chdir(_Path.home())
         except Exception:
             pass
-    _update_splash_gravitas(5)
-    _update_splash_technical("Loading PyTorch runtime...")
- 
-    from setiastro.saspro.runtime_torch import (
-        add_runtime_to_sys_path,
-        _ban_shadow_torch_paths,
-        _purge_bad_torch_from_sysmodules,
-    )
- 
-    # Inject runtime site-packages IMMEDIATELY so bare `import torch` calls
-    # in any subsequently-imported module can resolve against the wheel.
+    _update_splash(QCoreApplication.translate("Splash", "Loading PyTorch runtime..."), 5)
 
-    _ban_shadow_torch_paths(status_cb=lambda *_: None)
-    _purge_bad_torch_from_sysmodules(status_cb=lambda *_: None)
-    add_runtime_to_sys_path(status_cb=lambda *_: None)
- 
     # ── Probe whether torch is actually importable right now ──────────────────
     _torch_actually_available = False
     try:
