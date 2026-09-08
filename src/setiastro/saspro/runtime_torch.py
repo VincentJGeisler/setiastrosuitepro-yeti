@@ -114,6 +114,70 @@ def best_device(torch, *, prefer_cuda=True, prefer_dml=False, prefer_xpu=False):
     return torch.device("cpu")
 
 
+def np_to_torch(arr, device=None, dtype=None, torch=None):
+    """Convert a NumPy array without relying on torch's NumPy C bridge."""
+    import numpy as np
+
+    if torch is None:
+        import torch as _torch
+        torch = _torch
+    a = np.ascontiguousarray(arr)
+    try:
+        tensor = torch.from_dlpack(a)
+    except Exception:
+        tensor = torch.as_tensor(a)
+    if dtype is not None:
+        tensor = tensor.to(dtype=dtype)
+    if device is not None:
+        tensor = tensor.to(device)
+    return tensor
+
+
+def torch_to_np(tensor):
+    """Convert a Torch tensor to a CPU NumPy array."""
+    import numpy as np
+
+    tensor = tensor.detach().cpu().contiguous()
+    try:
+        return np.from_dlpack(tensor)
+    except Exception:
+        return tensor.numpy()
+
+
+def mps_is_usable(torch=None) -> bool:
+    """Return whether Apple Silicon exposes a usable MPS backend."""
+    if platform.system() != "Darwin" or platform.machine().lower() not in ("arm64", "aarch64"):
+        return False
+    try:
+        if torch is None:
+            import torch as _torch
+            torch = _torch
+        backend = getattr(getattr(torch, "backends", None), "mps", None)
+        return bool(backend and backend.is_available())
+    except Exception:
+        return False
+
+
+def directml_probe_ok(status_cb=lambda *_: None, timeout=60, force=False) -> bool:
+    """Check an already-installed DirectML provider without changing the environment."""
+    del timeout, force
+    if platform.system() != "Windows":
+        return False
+    try:
+        import torch
+        import torch_directml
+
+        device = torch_directml.device()
+        _ = (torch.ones(1, device=device) + 1).item()
+        return True
+    except Exception as exc:
+        try:
+            status_cb(f"[RT] DirectML unavailable: {exc}")
+        except Exception:
+            pass
+        return False
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # 4. _user_runtime_dir - Return LOCALAPPDATA path structure
 # ──────────────────────────────────────────────────────────────────────────────
