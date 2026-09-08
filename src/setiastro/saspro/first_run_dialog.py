@@ -489,7 +489,7 @@ class FirstRunDialog(QDialog):
             steps=[
                 {
                     "text": "Install Python 3.12, 3.13, or 3.14",
-                    "note": "Hardware acceleration requires Python 3.12, 3.13, or 3.14. SASpro will automatically detect and use whichever supported version you have installed.",
+                    "note": "Hardware acceleration uses the active Python environment. Install a compatible Torch/CUDA/ONNX stack yourself with conda or pip.",
                     "link": ("⬇  Download Python 3.12 (recommended)", "https://www.python.org/downloads/release/python-31210/"),
                 },
                 {
